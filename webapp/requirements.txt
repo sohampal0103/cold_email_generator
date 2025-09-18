@@ -1,0 +1,4 @@
+Flask==2.0.1
+Werkzeug==2.2.3
+ -r ../requirements-common.txt
+numpy==1.26.4

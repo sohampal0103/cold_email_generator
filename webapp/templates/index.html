@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cold Email Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .loading {
+            display: none;
+        }
+        .loading.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Cold Email Generator</h1>
+        
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+            <form id="emailForm" class="space-y-4">
+                <div>
+                    <label for="role" class="block text-sm font-medium text-gray-700">Job Role</label>
+                    <input type="text" id="role" name="role" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                
+                <div>
+                    <label for="experience" class="block text-sm font-medium text-gray-700">Experience Required</label>
+                    <input type="text" id="experience" name="experience" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                
+                <div>
+                    <label for="skills" class="block text-sm font-medium text-gray-700">Required Skills (comma-separated)</label>
+                    <input type="text" id="skills" name="skills" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700">Job Description</label>
+                    <textarea id="description" name="description" rows="4" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                </div>
+                
+                <button type="submit"
+                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Generate Email
+                </button>
+            </form>
+            
+            <div class="loading mt-4 text-center">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p class="mt-2 text-gray-600">Generating your email...</p>
+            </div>
+            
+            <div id="result" class="mt-6 hidden">
+                <h2 class="text-xl font-semibold mb-2 text-gray-800">Generated Email</h2>
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <pre id="emailContent" class="whitespace-pre-wrap text-gray-700"></pre>
+                </div>
+                <button onclick="copyToClipboard()"
+                    class="mt-4 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                    Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('emailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const form = e.target;
+            const loading = document.querySelector('.loading');
+            const result = document.getElementById('result');
+            
+            loading.classList.add('active');
+            result.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/generate-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        role: form.role.value,
+                        experience: form.experience.value,
+                        skills: form.skills.value,
+                        description: form.description.value
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('emailContent').textContent = data.email;
+                    result.classList.remove('hidden');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('An error occurred while generating the email.');
+            } finally {
+                loading.classList.remove('active');
+            }
+        });
+        
+        function copyToClipboard() {
+            const emailContent = document.getElementById('emailContent').textContent;
+            navigator.clipboard.writeText(emailContent)
+                .then(() => alert('Email copied to clipboard!'))
+                .catch(err => alert('Failed to copy email: ' + err));
+        }
+    </script>
+</body>
+</html> 
